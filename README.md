@@ -18,3 +18,9 @@
 3. Sau khi nghê hết thờ sẽ chuyển qua màn hình Tô màu OnColorScene
 4. Khi vào màn hình tô màu sẽ đọc hướng dẫn chơi, và sẽ không thể thao tác cho đến khi đọc xong hướng dẫn
 5. Sau khi tô hết các hình thì sẽ chuyển qua màn hình end game
+
+###  tô màu:
+- tạo mask bằng hình của 4 quả bóng
+- Tạo 4 render texture để chứa màu 
+- đè ảnh outline lên trên 
+- căn chỉnh cho trùng khớp với ảnh outline 

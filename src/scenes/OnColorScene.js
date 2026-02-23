@@ -300,72 +300,84 @@ export default class OnColorScene extends Phaser.Scene {
 
 
 
-    // CHECK COMPLETE 
     checkAllComplete() {
 
         if (this.isCheckingComplete) return;
         this.isCheckingComplete = true;
 
-        let completedCount = 0;
-        let checkedCount = 0;
+        const promises = this.shapes.map(shape => {
 
-        this.shapes.forEach(shape => {
+            return new Promise(resolve => {
 
-            shape.rt.snapshot((image) => {
+                shape.rt.snapshot(image => {
 
-                // Tạo canvas trung gian
-                const canvas = document.createElement("canvas");
-                canvas.width = shape.width;
-                canvas.height = shape.height;
+                    const canvas = document.createElement("canvas");
+                    canvas.width = shape.width;
+                    canvas.height = shape.height;
 
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(image, 0, 0);
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(image, 0, 0);
 
-                const data = ctx.getImageData(
-                    0,
-                    0,
-                    shape.width,
-                    shape.height
-                ).data;
+                    const data = ctx.getImageData(
+                        0,
+                        0,
+                        shape.width,
+                        shape.height
+                    ).data;
 
-                let filled = 0;
+                    let filled = 0;
 
-                for (let i = 3; i < data.length; i += 4) {
-                    if (data[i] > 10) filled++;
-                }
-
-                const percent = filled / (shape.width * shape.height);
-
-                if (percent >= 0.95) {
-                    completedCount++;
-
-                    // Mới hoàn thành lần đầu → effect
-                    if (!shape.isComplete) {
-                        shape.isComplete = true;
-                        this.sound.play('correct_sound_1');
-                        this.flashShape(shape.rt);
-                    }
-                }
-
-                checkedCount++;
-
-                if (checkedCount === this.shapes.length) {
-
-                    if (completedCount === this.shapes.length) {
-                        this.isGameComplete = true;
-                        this.input.enabled = false;
-
-                        this.time.delayedCall(3000, () => {
-                            this.scene.start("EndGameScene");
-                        });
+                    for (let i = 3; i < data.length; i += 4) {
+                        if (data[i] > 10) filled++;
                     }
 
-                    this.isCheckingComplete = false;
-                }
+                    const percent = filled / (shape.width * shape.height);
+
+                    resolve({
+                        shape,
+                        isComplete: percent >= 0.95
+                    });
+
+                });
 
             });
 
         });
+
+        Promise.all(promises).then(results => {
+
+            let completedCount = 0;
+
+            results.forEach(result => {
+
+                if (result.isComplete) {
+
+                    completedCount++;
+
+                    if (!result.shape.isComplete) {
+                        result.shape.isComplete = true;
+                        this.sound.play('correct_sound_1');
+                        this.flashShape(result.shape.rt);
+                    }
+                }
+
+            });
+
+            if (completedCount === this.shapes.length) {
+
+                this.isGameComplete = true;
+                this.input.enabled = false;
+
+                this.time.delayedCall(3000, () => {
+                    this.scene.start("EndGameScene");
+                });
+
+            }
+
+            this.isCheckingComplete = false;
+
+        });
+
     }
 
     // Hiệu ứng nháy khi hoàn thành 1 shape

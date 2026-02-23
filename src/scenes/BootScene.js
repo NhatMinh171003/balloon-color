@@ -41,7 +41,7 @@ export default class BootScene extends Phaser.Scene {
 
     }
     create() {
-        this.scene.start('ReadScene');
+        this.scene.start('OnColorScene');
     }
     update() {
     }
