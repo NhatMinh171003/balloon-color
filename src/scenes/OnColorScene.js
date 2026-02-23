@@ -26,7 +26,7 @@ export default class OnColorScene extends Phaser.Scene {
         bg.displayWidth = this.scale.width;
         bg.displayHeight = this.scale.height;
 
-        // ── Container bắt đầu ngoài màn hình bên phải ──
+        //  Container bắt đầu ngoài màn hình bên phải 
         // Tất cả object bên trong dùng tọa độ TƯƠNG ĐỐI so với container
 
         const container = this.add.container(this.scale.width, bannerHeight);
@@ -65,11 +65,11 @@ export default class OnColorScene extends Phaser.Scene {
             });
         });
 
-        // ── Board ──
+        // Board
         const board = this.add.image(centerX, centerY - 30, "board").setScale(0.45);
         container.add(board);
 
-        // ── Letter O ──
+        //Letter O 
         const letterX = centerX - 220;
         const letterY = centerY - 60;
         const letterScale = 0.4;
@@ -82,7 +82,7 @@ export default class OnColorScene extends Phaser.Scene {
         oRT.setDepth(10);
         container.add(oRT);
 
-        // Mask hình donut cho chữ O (GeometryMask dùng tọa độ thế giới)
+        // Mask hình donut cho chữ O 
         const g = this.add.graphics();
         g.setVisible(false);
         g.x = this.scale.width; // bắt đầu cùng vị trí container
@@ -207,6 +207,7 @@ export default class OnColorScene extends Phaser.Scene {
             container.add(circle);
 
             circle.on("pointerdown", () => {
+                if (this.audioPlaying) return;
                 this.sound.play('click_sound');
                 this.currentColor = color;
                 // world x = circle.x + container.x
@@ -221,6 +222,8 @@ export default class OnColorScene extends Phaser.Scene {
         container.add(eraser);
 
         eraser.on("pointerdown", () => {
+            if (this.audioPlaying) return;
+            this.sound.play('click_sound');
             this.currentColor = null;
             this.updateSelection(eraser.x + container.x, eraser.y + container.y);
         });
@@ -297,7 +300,7 @@ export default class OnColorScene extends Phaser.Scene {
 
 
 
-    // ================= CHECK COMPLETE =================
+    // CHECK COMPLETE 
     checkAllComplete() {
 
         if (this.isCheckingComplete) return;
