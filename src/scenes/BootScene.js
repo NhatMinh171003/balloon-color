@@ -35,12 +35,13 @@ export default class BootScene extends Phaser.Scene {
         this.load.audio('click_sound', 'assets/audio/sfx/click.mp3');
         this.load.audio('complete_sound', 'assets/audio/sfx/complete.mp3');
         this.load.audio('correct_sound', 'assets/audio/sfx/correct_answer_2.mp3');
+        this.load.audio('correct_sound_1', 'assets/audio/sfx/correct.mp3');
 
 
 
     }
     create() {
-        this.scene.start('ReadScene');
+        this.scene.start('OnColorScene');
     }
     update() {
     }

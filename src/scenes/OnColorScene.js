@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { addButtonEffect } from "../utils/buttonEffect";
 
 export default class OnColorScene extends Phaser.Scene {
     constructor() {
@@ -6,9 +7,14 @@ export default class OnColorScene extends Phaser.Scene {
     }
 
     create() {
+        const { width, height } = this.scale;
+        const bannerHeight = 60; // khoảng cách dưới title
+        const color_guide_sound = this.sound.add('color_guide_sound');
+        this.audioPlaying = true;
 
+        const availableHeight = height - bannerHeight;
+        const centerY = bannerHeight + availableHeight / 2;
         const centerX = this.scale.width / 2;
-        const centerY = this.scale.height / 2;
         this.brushGraphics = this.make.graphics({ x: 0, y: 0, add: false });
 
         this.currentColor = 0xe74c3c;
@@ -22,8 +28,42 @@ export default class OnColorScene extends Phaser.Scene {
 
         // ── Container bắt đầu ngoài màn hình bên phải ──
         // Tất cả object bên trong dùng tọa độ TƯƠNG ĐỐI so với container
-        const container = this.add.container(this.scale.width, 0);
+
+        const container = this.add.container(this.scale.width, bannerHeight);
         this.boardContainer = container;
+
+        const sc = (img, factor) => Math.min(
+            width / img.width * factor,
+            height / img.height * factor
+        );
+
+        const title = this.add.image(width / 2 - 40, 80, 'title')
+            .setOrigin(0.5)
+            .setScale(sc({
+                width: this.textures.get('title').getSourceImage().width,
+                height: this.textures.get('title').getSourceImage().height
+            }, 0.57));
+
+        const btnReplay = this.add.image(width - 250, 75, 'btn_replay')
+            .setScale(0.46)
+            .setInteractive({ useHandCursor: true });
+
+        addButtonEffect(this, btnReplay);
+
+        btnReplay.on('pointerdown', () => {
+            if (this.audioPlaying) return;
+            this.sound.play('click_sound');
+            this.scene.start('ReadScene');
+        });
+        //audio
+
+        this.time.delayedCall(1000, () => {
+
+            color_guide_sound.play();
+            color_guide_sound.once('complete', () => {
+                this.audioPlaying = false;
+            });
+        });
 
         // ── Board ──
         const board = this.add.image(centerX, centerY - 30, "board").setScale(0.45);
@@ -78,7 +118,7 @@ export default class OnColorScene extends Phaser.Scene {
         container.add(balloonLine);
 
         // helper tạo từng balloon
-        // maskImg ở NGOÀI container (world-space) để BitmapMask hoạt động đúng
+        // maskImg ở NGOÀI container để BitmapMask hoạt động đúng
         // rt ở TRONG container để slide cùng container
         const makeBalloon = (key, bx, by, scale) => {
             const maskImg = this.add.image(bx, by, key).setScale(scale).setVisible(false);
@@ -125,13 +165,15 @@ export default class OnColorScene extends Phaser.Scene {
             ease: 'Power3',
             onUpdate: () => {
                 const cx = container.x;
+                const cy = container.y;
                 // Sync maskImg theo world position của rt tương ứng
                 allMaskImgs.forEach((m, i) => {
                     m.x = rtLocalX[i] + cx;
-                    m.y = rtLocalY[i];
+                    m.y = rtLocalY[i] + cy;
                 });
                 // Sync GeometryMask (chữ O)
                 g.x = cx;
+                g.y = bannerHeight;
             },
             onComplete: () => {
                 this.enablePaint();
@@ -184,12 +226,12 @@ export default class OnColorScene extends Phaser.Scene {
         });
 
         // highlights màu đầu tiên (red) khi tween xong → container.x = 0
-        this.updateSelection(centerX - 300, y);
+        this.updateSelection(centerX - 800, y);
     }
 
     updateSelection(x, y) {
         this.selectedBorder.clear();
-        this.selectedBorder.lineStyle(3, 0xffffff);
+        this.selectedBorder.lineStyle(3, "#555555");
         this.selectedBorder.strokeCircle(x, y, 32);
     }
 
@@ -225,7 +267,7 @@ export default class OnColorScene extends Phaser.Scene {
                     this.brushGraphics.fillCircle(
                         local.x,
                         local.y,
-                        this.brushSize / 2
+                        this.brushSize / 1.5
                     );
 
                     shape.rt.erase(this.brushGraphics);
@@ -236,7 +278,7 @@ export default class OnColorScene extends Phaser.Scene {
                     this.brushGraphics.fillCircle(
                         local.x,
                         local.y,
-                        this.brushSize / 2
+                        this.brushSize / 1.5
                     );
 
                     shape.rt.draw(this.brushGraphics);
@@ -291,8 +333,15 @@ export default class OnColorScene extends Phaser.Scene {
 
                 const percent = filled / (shape.width * shape.height);
 
-                if (percent >= 0.8) {
+                if (percent >= 0.95) {
                     completedCount++;
+
+                    // Mới hoàn thành lần đầu → effect
+                    if (!shape.isComplete) {
+                        shape.isComplete = true;
+                        this.sound.play('correct_sound_1');
+                        this.flashShape(shape.rt);
+                    }
                 }
 
                 checkedCount++;
@@ -300,7 +349,6 @@ export default class OnColorScene extends Phaser.Scene {
                 if (checkedCount === this.shapes.length) {
 
                     if (completedCount === this.shapes.length) {
-                        console.log("HOÀN THÀNH!");
                         this.isGameComplete = true;
                         this.input.enabled = false;
 
@@ -314,6 +362,21 @@ export default class OnColorScene extends Phaser.Scene {
 
             });
 
+        });
+    }
+
+    // Hiệu ứng nháy khi hoàn thành 1 shape
+    flashShape(rt) {
+        this.tweens.add({
+            targets: rt,
+            alpha: { from: 1, to: 0.2 },
+            duration: 120,
+            yoyo: true,       // đảo ngược về alpha=1
+            repeat: 3,        // nháy 3 lần
+            ease: 'Sine.easeInOut',
+            onComplete: () => {
+                rt.setAlpha(1);
+            }
         });
     }
 

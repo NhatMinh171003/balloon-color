@@ -1,4 +1,6 @@
 import Phaser from "phaser";
+import { addButtonEffect } from '../utils/buttonEffect.js';
+
 export default class ReadScene extends Phaser.Scene {
     constructor() {
         super('ReadScene');
@@ -49,6 +51,9 @@ export default class ReadScene extends Phaser.Scene {
                 this.scale.height / btnSound.height
             ) * 0.1
         ).setInteractive({ useHandCursor: true });
+        addButtonEffect(this, btnReplay);
+        addButtonEffect(this, btnSound);
+
         // âm thanh hướng dẫn
         this.time.delayedCall(1000, () => {
             poetry_guide_sound.play();

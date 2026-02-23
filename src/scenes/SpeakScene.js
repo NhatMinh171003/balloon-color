@@ -1,4 +1,6 @@
 import Phaser from "phaser";
+import { addButtonEffect } from '../utils/buttonEffect.js';
+
 export default class SpeakScene extends Phaser.Scene {
     constructor() {
         super('SpeakScene')
@@ -17,6 +19,7 @@ export default class SpeakScene extends Phaser.Scene {
             this.scale.height / 2 * 0.95
         );
 
+
         const board = this.add.image(0, 0, 'board');
         const rectConner = this.add.image(0, this.scale.height, 'rectConner').setOrigin(0, 1).setScale(1.5);
         const txtSpeaking = this.add.image(
@@ -28,6 +31,10 @@ export default class SpeakScene extends Phaser.Scene {
         const txtChicken = this.add.image(-600, 0, 'txtChicken');
 
         container.add([board, chicken, txtChicken]);
+        const btnReplay = this.add.image(this.scale.width - 20, 20, 'btn_replay')
+            .setOrigin(1, 0)
+            .setScale(0.46)
+            .setInteractive({ useHandCursor: true });
 
         //scale
         const scale = Math.min(
@@ -52,12 +59,21 @@ export default class SpeakScene extends Phaser.Scene {
             ease: 'Power3'
         });
 
+        addButtonEffect(this, btnReplay);
+
+        btnReplay.on('pointerdown', () => {
+            this.sound.play('click_sound');
+            this.scene.start('ReadScene');
+            poetry_sound.stop();
+        });
+
+
         this.time.delayedCall(1000, () => {
             poetry_sound.play();
             poetry_sound.once('complete', () => {
 
                 this.time.delayedCall(2000, () => {
-                    this.scene.start('ColorScene');
+                    this.scene.start('OnColorScene');
                 });
             });
         });

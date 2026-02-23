@@ -1,4 +1,6 @@
 import Phaser from "phaser";
+import { addButtonEffect } from '../utils/buttonEffect.js';
+
 export default class ColorScene extends Phaser.Scene {
     constructor() {
         super('ColorScene');
@@ -75,6 +77,9 @@ export default class ColorScene extends Phaser.Scene {
                 this.audioPlaying = false;
             });
         });
+
+        addButtonEffect(this, btnReplay);
+        addButtonEffect(this, colors);
 
         // ── Events ──
         btnReplay.on('pointerdown', () => {
