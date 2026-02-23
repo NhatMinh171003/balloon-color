@@ -5,15 +5,13 @@ export default class ReadScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('bg_home', 'assets/images/bg/bg_home.jpg');
-        this.load.image('btn_replay', 'assets/images/ui/btn_replay.png');
-        this.load.image('read_board', 'assets/images/ui/read_board.png');
-        this.load.image('sound', 'assets/images/ui/play_sound.png');
-        this.load.image('hand', 'assets/images/ui/hand.png');
+
     }
 
     create() {
         const bg = this.add.image(0, 0, 'bg_home').setOrigin(0, 0);
+        const poetry_guide_sound = this.sound.add('poetry_guide_sound');
+        this.audioPlaying = true;
         bg.displayWidth = this.scale.width;
         bg.displayHeight = this.scale.height;
 
@@ -24,6 +22,14 @@ export default class ReadScene extends Phaser.Scene {
                 this.scale.width / boardImg.width,
                 this.scale.height / boardImg.height
             ) * 0.95
+        );
+        //banner
+        const banner = this.add.image(this.scale.width / 2, 50, 'banner');
+        banner.setScale(
+            Math.min(
+                this.scale.width / boardImg.width,
+                this.scale.height / boardImg.height
+            )
         );
 
         //replay button
@@ -43,16 +49,27 @@ export default class ReadScene extends Phaser.Scene {
                 this.scale.height / btnSound.height
             ) * 0.1
         ).setInteractive({ useHandCursor: true });
-
+        // âm thanh hướng dẫn
+        this.time.delayedCall(1000, () => {
+            poetry_guide_sound.play();
+            poetry_guide_sound.once('complete', () => {
+                this.audioPlaying = false;
+            });
+        });
 
         //event reolay button
         btnReplay.on('pointerdown', () => {
-            console.log('replay');
+            if (this.audioPlaying) return;
+            this.sound.play('click_sound');
+            this.scene.start('ReadScene');
+            this.audioPlaying = true;
         });
 
         //event sound button
         btnSound.on('pointerdown', () => {
-            console.log('sound');
+            if (this.audioPlaying) return;
+            this.sound.play('click_sound');
+            this.scene.start('SpeakScene');
         });
 
     }
